@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Homework1_6_12
@@ -24,10 +25,10 @@ namespace Homework1_6_12
         public Zoo()
         {
             _aviaries = new List<Aviary>();
-            _aviaries.Add(new Aviary("Вольер для тигров", AnimalName.Tiger));
-            _aviaries.Add(new Aviary("Вольер для львов", AnimalName.Lion));
-            _aviaries.Add(new Aviary("Вольер для слонов", AnimalName.Elephant));
-            _aviaries.Add(new Aviary("Вольер для жирафов", AnimalName.Fox));
+            _aviaries.Add(new Aviary(AnimalNames.Tiger, "Замок"));
+            _aviaries.Add(new Aviary(AnimalNames.Lion));
+            _aviaries.Add(new Aviary(AnimalNames.Elephant));
+            _aviaries.Add(new Aviary(AnimalNames.Fox));
         }
 
         public void Work()
@@ -48,9 +49,11 @@ namespace Homework1_6_12
                     case SearchAviaryCommand:
                         SearchAviary();
                         break;
+
                     case ExitZooCommand:
                         isWork = false;
                         break;
+
                     default:
                         Console.WriteLine("Неверный ввод");
                         break;
@@ -85,28 +88,16 @@ namespace Homework1_6_12
                 Console.WriteLine("Неверный ввод");
             }
         }
-
     }
 
     class Aviary
     {
         private List<Animal> _animals;
-        private Random _random; 
 
-        public Aviary(string name, AnimalName animalName)
+        public Aviary(AnimalNames animalName, string name = "")
         {
-            Name = name;
-            _random = new Random();
             _animals = new List<Animal>();
-
-            int minCountAnimals = 1;
-            int maxCountAnimals = 10;
-            int countAnimals = _random.Next(minCountAnimals, maxCountAnimals + 1);
-
-            for (int i = 0; i < countAnimals; i++)
-            {
-                _animals.Add(new Animal(animalName));
-            }
+            FillAnimals(animalName, name);
         }
 
         public string Name { get; private set; }
@@ -120,40 +111,56 @@ namespace Homework1_6_12
                 animal.ShowInfo();
             }
         }
+
+        private void FillAnimals(AnimalNames animalName, string name)
+        {
+            if (name != "")
+            {
+                name += ": ";
+            }
+
+            Name += $"{name}Вольер для {animalName}s";
+
+            int minCountAnimals = 1;
+            int maxCountAnimals = 10;
+            int countAnimals = UserUtilits.GenerateRandomNumber(minCountAnimals, maxCountAnimals + 1);
+
+            for (int i = 0; i < countAnimals; i++)
+            {
+                _animals.Add(new Animal(animalName));
+            }
+        }
     }
 
     class Animal
     {
-        private Sex _sex;
+        private Genders _gender;
         private string _sound;
-        private AnimalName _name;
-        private Random _random;
-        private Dictionary<AnimalName, string> _sounds;
+        private Dictionary<AnimalNames, string> _sounds;
 
-        public Animal (AnimalName animalName)
+        public Animal (AnimalNames animalName)
         {
-            _random = new Random();
             FillSounds();
-            _sex = (Sex)_random.Next(0, (int)Sex.Length);
+            _gender = (Genders)UserUtilits.GenerateRandomNumber(0, Enum.GetValues(typeof(Genders)).Length);
             _sound = _sounds[animalName];
         }
 
         public void ShowInfo()
         {
-            Console.WriteLine("Пол: " + _sex + ". Издает звук: " + _sound);
+            Console.WriteLine("Пол: " + _gender + ". Издает звук: " + _sound);
         }
 
         private void FillSounds()
         {
-            _sounds = new Dictionary<AnimalName, string>();
-            _sounds.Add(AnimalName.Tiger, "мяу");
-            _sounds.Add(AnimalName.Lion, "ррр");
-            _sounds.Add(AnimalName.Elephant, "ииууу");
-            _sounds.Add(AnimalName.Fox, "What???");
+            _sounds = new Dictionary<AnimalNames, string>();
+            _sounds.Add(AnimalNames.Tiger, "мяу");
+            _sounds.Add(AnimalNames.Lion, "ррр");
+            _sounds.Add(AnimalNames.Elephant, "ииууу");
+            _sounds.Add(AnimalNames.Fox, "What???");
         }
     }
 
-    enum AnimalName
+    enum AnimalNames
     {
         Tiger,
         Lion,
@@ -161,10 +168,19 @@ namespace Homework1_6_12
         Fox
     }
 
-    enum Sex
+    enum Genders
     {
         Male,
-        Female,
-        Length
+        Female
+    }
+
+    class UserUtilits
+    {
+        private static Random _random = new Random();
+
+        public static int GenerateRandomNumber(int min, int max)
+        {
+            return _random.Next(min, max);
+        }
     }
 }
